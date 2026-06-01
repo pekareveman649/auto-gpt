@@ -1,0 +1,41 @@
+{
+  "clean": {
+    "base_url": "http://xxx:8317/",
+    "token": "xxx",
+    "target_type": "codex",
+    "workers": 10,
+    "delete_workers": 20,
+    "timeout": 10,
+    "retries": 1,
+    "user_agent": "codex_cli_rs/0.76.0 (Debian 13.0.0; x86_64) WindowsTerminal"
+  },
+  "email": {
+    "worker_domain": "email.xxx.space",
+    "email_domains": [
+      "xxx.space"
+    ],
+    "admin_password": "xxx"
+  },
+  "maintainer": {
+    "min_candidates": 10
+  },
+  "run": {
+    "workers": 8,
+    "proxy": "http://127.0.0.1:7890"
+  },
+  "oauth": {
+    "issuer": "https://auth.openai.com",
+    "client_id": "app_2SKx67EdpoN0G6j64rFvigXD",
+    "redirect_uri": "https://platform.openai.com/auth/callback",
+    "retry_attempts": 3,
+    "retry_backoff_base": 2.0,
+    "retry_backoff_max": 15.0
+  },
+  "output": {
+    "accounts_file": "accounts.txt",
+    "csv_file": "registered_accounts.csv",
+    "ak_file": "ak.txt",
+    "rk_file": "rk.txt",
+    "save_local": true
+  }
+}
