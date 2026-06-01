@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="5f659a9d-1ec7-4bfd-8336-cabf9ad1bd59" name="更改" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/pool_maintainer_20260601_181333.log" beforeDir="false" afterPath="$PROJECT_DIR$/logs/pool_maintainer_20260601_181333.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/output_fixed/accounts.txt" beforeDir="false" afterPath="$PROJECT_DIR$/output_fixed/accounts.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/output_fixed/ak.txt" beforeDir="false" afterPath="$PROJECT_DIR$/output_fixed/ak.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/output_fixed/registered_accounts.csv" beforeDir="false" afterPath="$PROJECT_DIR$/output_fixed/registered_accounts.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/output_fixed/rk.txt" beforeDir="false" afterPath="$PROJECT_DIR$/output_fixed/rk.txt" afterDir="false" />
+    <list default="true" id="5f659a9d-1ec7-4bfd-8336-cabf9ad1bd59" name="更改" comment="init">
+      <change beforePath="$PROJECT_DIR$/logs/pool_maintainer_20260601_180450.log" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/logs/pool_maintainer_20260601_181333.log" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/output_fixed/accounts.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/output_fixed/ak.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/output_fixed/registered_accounts.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/output_fixed/rk.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/output_tokens/100个账号-3/tmplijezj4tjzmr@soeasy.space.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/output_tokens/10个账号/tmpbw1kkqq0uhnowp@soeasy.space.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/output_tokens/10个账号/tmpcghyytaodyrdy0t@soeasy.space.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/output_tokens/10个账号/tmpcon96pkyanjtjorh@soeasy.space.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/output_tokens/10个账号/tmpqjkcwejp5vuim@soeasy.space.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/output_tokens/10个账号/tmpxgbsbkw6xfku@soeasy.space.json" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -17,6 +23,12 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "pekareveman649"
+  }
+}]]></component>
   <component name="GithubPullRequestsUISettings"><![CDATA[{
   "selectedUrlAndAccountId": {
     "url": "https://github.com/pekareveman649/auto-gpt.git",
@@ -94,9 +106,30 @@
       <option name="presentableId" value="Default" />
       <updated>1780299898272</updated>
     </task>
+    <task id="LOCAL-00001" summary="init">
+      <option name="closed" value="true" />
+      <created>1780309823778</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1780309823778</updated>
+    </task>
+    <task id="LOCAL-00002" summary="init">
+      <option name="closed" value="true" />
+      <created>1780309997326</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1780309997326</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="init" />
+    <option name="LAST_COMMIT_MESSAGE" value="init" />
   </component>
 </project>
