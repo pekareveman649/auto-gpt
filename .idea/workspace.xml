@@ -1,12 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="5f659a9d-1ec7-4bfd-8336-cabf9ad1bd59" name="更改" comment="" />
+    <list default="true" id="5f659a9d-1ec7-4bfd-8336-cabf9ad1bd59" name="更改" comment="">
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/logs/pool_maintainer_20260601_181333.log" beforeDir="false" afterPath="$PROJECT_DIR$/logs/pool_maintainer_20260601_181333.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/output_fixed/accounts.txt" beforeDir="false" afterPath="$PROJECT_DIR$/output_fixed/accounts.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/output_fixed/ak.txt" beforeDir="false" afterPath="$PROJECT_DIR$/output_fixed/ak.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/output_fixed/registered_accounts.csv" beforeDir="false" afterPath="$PROJECT_DIR$/output_fixed/registered_accounts.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/output_fixed/rk.txt" beforeDir="false" afterPath="$PROJECT_DIR$/output_fixed/rk.txt" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/pekareveman649/auto-gpt.git",
+    "accountId": "47021147-8153-44ac-a735-9c79098c91d1"
+  }
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 8,
   &quot;fromUser&quot;: false
@@ -24,6 +40,7 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "main",
     "last_opened_file_path": "E:/workspace/py/auto-gpt2",
     "node.js.detected.package.eslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
