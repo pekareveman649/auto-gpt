@@ -90,6 +90,10 @@ class AddPhoneRequired(RuntimeError):
     """Codex 登录触发手机绑定, 该账号跳过重试"""
 
 
+class InvalidAuthStep(RuntimeError):
+    """OpenAI auth state is invalid for this account attempt; skip without retry."""
+
+
 def load_json(path: Path) -> Dict[str, Any]:
     if not path.exists():
         return {}
@@ -443,6 +447,9 @@ def wait_for_verification_code(
     worker_domain: str,
     cf_token: str,
     timeout: int = 120,
+    logger: Optional[logging.Logger] = None,
+    email: str = "",
+    provider_name: str = "cf",
 ) -> Optional[str]:
     old_ids = set()
     old = fetch_emails(session, worker_domain, cf_token)
@@ -457,8 +464,19 @@ def wait_for_verification_code(
                 return code
 
     start = time.time()
+    next_log_at = start
     while time.time() - start < timeout:
         emails = fetch_emails(session, worker_domain, cf_token)
+        now = time.time()
+        if logger and now >= next_log_at:
+            logger.info(
+                "等待验证码中: provider=%s, email=%s, elapsed=%.0fs, mails=%s",
+                provider_name,
+                email,
+                now - start,
+                len(emails) if isinstance(emails, list) else 0,
+            )
+            next_log_at = now + 15
         if emails:
             for item in emails:
                 if not isinstance(item, dict):
@@ -471,6 +489,213 @@ def wait_for_verification_code(
                     return code
         time.sleep(3)
     return None
+
+
+class EmailProviderError(RuntimeError):
+    pass
+
+
+class EmailMailboxProvider:
+    def __init__(self, session: requests.Session, logger: logging.Logger):
+        self.session = session
+        self.logger = logger
+
+    def create_mailbox(self) -> Optional[str]:
+        raise NotImplementedError
+
+    def wait_for_verification_code(self, timeout: int = 120) -> Optional[str]:
+        raise NotImplementedError
+
+
+class CloudflareEmailProvider(EmailMailboxProvider):
+    def __init__(self, session: requests.Session, worker_domain: str, email_domains: List[str], admin_password: str, logger: logging.Logger):
+        super().__init__(session=session, logger=logger)
+        self.worker_domain = worker_domain
+        self.email_domains = email_domains
+        self.admin_password = admin_password
+        self.email: Optional[str] = None
+        self.cf_token: Optional[str] = None
+
+    def create_mailbox(self) -> Optional[str]:
+        email, token = create_temp_email(
+            self.session,
+            worker_domain=self.worker_domain,
+            email_domains=self.email_domains,
+            admin_password=self.admin_password,
+            logger=self.logger,
+        )
+        if not email or not token:
+            return None
+        self.email = email
+        self.cf_token = token
+        return email
+
+    def wait_for_verification_code(self, timeout: int = 120) -> Optional[str]:
+        if not self.cf_token:
+            return None
+        return wait_for_verification_code(
+            self.session,
+            self.worker_domain,
+            self.cf_token,
+            timeout=timeout,
+            logger=self.logger,
+            email=self.email or "",
+            provider_name="cf",
+        )
+
+
+def _response_data(resp) -> Dict[str, Any]:
+    payload = _safe_json(resp)
+    data = payload.get("data") if isinstance(payload, dict) else {}
+    return data if isinstance(data, dict) else payload
+
+
+class GptMailProvider(EmailMailboxProvider):
+    def __init__(self, session: requests.Session, base_url: str, api_key: str, logger: logging.Logger):
+        super().__init__(session=session, logger=logger)
+        self.base_url = base_url.rstrip("/")
+        self.api_key = api_key
+        self.email: Optional[str] = None
+
+    def _headers(self) -> Dict[str, str]:
+        return {"X-API-Key": self.api_key}
+
+    def _url(self, path: str) -> str:
+        return f"{self.base_url}{path}"
+
+    def create_mailbox(self) -> Optional[str]:
+        try:
+            res = self.session.get(self._url("/api/generate-email"), headers=self._headers(), timeout=30, verify=False)
+            if res.status_code != 200:
+                self.logger.warning("gptmail create mailbox failed: HTTP %s", res.status_code)
+                return None
+            data = _response_data(res)
+            email = str(data.get("email") or "").strip()
+            if not email:
+                self.logger.warning("gptmail create mailbox failed: missing email in response")
+                return None
+            self.email = email
+            self.logger.info("gptmail create mailbox success: %s", email)
+            return email
+        except Exception as e:
+            self.logger.warning("gptmail create mailbox error: %s", e)
+            return None
+
+    def _list_emails(self) -> List[Dict[str, Any]]:
+        if not self.email:
+            return []
+        try:
+            res = self.session.get(
+                self._url("/api/emails"),
+                params={"email": self.email},
+                headers=self._headers(),
+                timeout=30,
+                verify=False,
+            )
+            if res.status_code != 200:
+                self.logger.warning("gptmail list emails failed: HTTP %s | email=%s", res.status_code, self.email)
+                return []
+            data = _response_data(res)
+            rows = data.get("emails", [])
+            return rows if isinstance(rows, list) else []
+        except Exception as e:
+            self.logger.warning("gptmail list emails error: %s | email=%s", e, self.email)
+            return []
+
+    def _get_email_detail(self, email_id: str) -> Dict[str, Any]:
+        if not email_id:
+            return {}
+        try:
+            res = self.session.get(
+                self._url(f"/api/email/{quote(email_id)}"),
+                headers=self._headers(),
+                timeout=30,
+                verify=False,
+            )
+            if res.status_code != 200:
+                self.logger.warning("gptmail email detail failed: HTTP %s | id=%s", res.status_code, email_id)
+                return {}
+            return _response_data(res)
+        except Exception as e:
+            self.logger.warning("gptmail email detail error: %s | id=%s", e, email_id)
+            return {}
+
+    @staticmethod
+    def _message_text(message: Dict[str, Any]) -> str:
+        parts = [
+            str(message.get("content") or ""),
+            str(message.get("html_content") or ""),
+            str(message.get("subject") or ""),
+            str(message.get("from_address") or ""),
+            str(message.get("email_address") or ""),
+            str(message.get("raw") or ""),
+        ]
+        return "\n".join(part for part in parts if part)
+
+    def wait_for_verification_code(self, timeout: int = 120) -> Optional[str]:
+        if not self.email:
+            return None
+
+        old_ids: set[str] = set()
+        old = self._list_emails()
+        if old:
+            old_ids = {str(item.get("id") or "") for item in old if isinstance(item, dict) and item.get("id")}
+            for item in old:
+                if not isinstance(item, dict):
+                    continue
+                email_id = str(item.get("id") or "").strip()
+                if not email_id:
+                    continue
+                detail = self._get_email_detail(email_id)
+                code = extract_verification_code(self._message_text(detail or item))
+                if code:
+                    return code
+
+        start = time.time()
+        next_log_at = start
+        while time.time() - start < timeout:
+            emails = self._list_emails()
+            now = time.time()
+            if now >= next_log_at:
+                self.logger.info(
+                    "等待验证码中: provider=gptmail, email=%s, elapsed=%.0fs, mails=%s",
+                    self.email,
+                    now - start,
+                    len(emails) if isinstance(emails, list) else 0,
+                )
+                next_log_at = now + 15
+            if emails:
+                for item in emails:
+                    if not isinstance(item, dict):
+                        continue
+                    email_id = str(item.get("id") or "").strip()
+                    if not email_id or email_id in old_ids:
+                        continue
+                    detail = self._get_email_detail(email_id)
+                    code = extract_verification_code(self._message_text(detail or item))
+                    if code:
+                        return code
+            time.sleep(3)
+        return None
+
+
+def create_email_provider(runtime: "RegisterRuntime", session: requests.Session) -> EmailMailboxProvider:
+    if runtime.email_type == "cf":
+        return CloudflareEmailProvider(
+            session=session,
+            worker_domain=runtime.worker_domain,
+            email_domains=runtime.email_domains,
+            admin_password=runtime.admin_password,
+            logger=runtime.logger,
+        )
+    if runtime.email_type == "gptmail":
+        return GptMailProvider(
+            session=session,
+            base_url=runtime.gptmail_base_url,
+            api_key=runtime.gptmail_api_key,
+            logger=runtime.logger,
+        )
+    raise EmailProviderError(f"unsupported email.type: {runtime.email_type}")
 
 
 class ProtocolRegistrar:
@@ -555,6 +780,19 @@ class ProtocolRegistrar:
                 data = {}
             if isinstance(data, dict) and data.get("message") == "Failed to create account. Please try again.":
                 self.logger.warning("注册失败提示: 邮箱域名很可能因滥用被封禁，请更换邮箱域名")
+            error_data = data.get("error") if isinstance(data, dict) else {}
+            if isinstance(error_data, dict):
+                error_code = str(error_data.get("code") or "").strip()
+                error_message = str(error_data.get("message") or "").strip()
+                if (
+                    error_code in {"invalid_auth_step", "account_creation_failed"}
+                    or error_message in {
+                        "Invalid authorization step.",
+                        "Failed to create account. Please try again.",
+                    }
+                ):
+                    detail = f", detail={json.dumps(data, ensure_ascii=False)[:200]}" if data else ""
+                    raise InvalidAuthStep(error or f"user_register HTTP {getattr(resp, 'status_code', 'unknown')}{detail}")
             detail = ""
             if data:
                 detail = f", detail={json.dumps(data, ensure_ascii=False)[:200]}"
@@ -977,12 +1215,14 @@ class RegisterRuntime:
         self.file_lock = threading.Lock()
         self.counter_lock = threading.Lock()
         self.token_success_count = 0
+        self.phone_verification_count = 0
         self.stop_event = threading.Event()
 
         run_workers = int(pick_conf(conf, "run", "workers", default=1) or 1)
         self.concurrent_workers = max(1, run_workers)
         self.proxy = str(pick_conf(conf, "run", "proxy", default="") or "")
 
+        self.email_type = str(pick_conf(conf, "email", "type", default="cf") or "cf").strip().lower() or "cf"
         self.worker_domain = str(pick_conf(conf, "email", "worker_domain", default="email.tuxixilax.cfd") or "")
         old_domain = str(pick_conf(conf, "email", "email_domain", default="tuxixilax.cfd") or "tuxixilax.cfd")
         domains = pick_conf(conf, "email", "email_domains", default=None)
@@ -993,6 +1233,11 @@ class RegisterRuntime:
             parsed_domains = [old_domain]
         self.email_domains = parsed_domains
         self.admin_password = str(pick_conf(conf, "email", "admin_password", default="") or "")
+        self.gptmail_base_url = str(
+            pick_conf(conf, "email", "gptmail_base_url", "base_url", default="https://mail.chatgpt.org.uk")
+            or "https://mail.chatgpt.org.uk"
+        ).strip() or "https://mail.chatgpt.org.uk"
+        self.gptmail_api_key = str(pick_conf(conf, "email", "gptmail_apikey", "apikey", default="") or "").strip()
 
         self.oauth_issuer = str(pick_conf(conf, "oauth", "issuer", default="https://auth.openai.com") or "https://auth.openai.com")
         self.oauth_client_id = str(
@@ -1071,6 +1316,15 @@ class RegisterRuntime:
     def get_token_success_count(self) -> int:
         with self.counter_lock:
             return self.token_success_count
+
+    def increment_phone_verification_count(self) -> int:
+        with self.counter_lock:
+            self.phone_verification_count += 1
+            return self.phone_verification_count
+
+    def get_phone_verification_count(self) -> int:
+        with self.counter_lock:
+            return self.phone_verification_count
 
     def claim_token_slot(self) -> tuple[bool, int]:
         with self.counter_lock:
@@ -1260,14 +1514,9 @@ def register_one(runtime: RegisterRuntime, worker_id: int = 0) -> tuple[Optional
     t_start = time.time()
     email_session = create_session(proxy=runtime.proxy)
 
-    email, cf_token = create_temp_email(
-        email_session,
-        worker_domain=runtime.worker_domain,
-        email_domains=runtime.email_domains,
-        admin_password=runtime.admin_password,
-        logger=runtime.logger,
-    )
-    if not email or not cf_token:
+    provider = create_email_provider(runtime, email_session)
+    email = provider.create_mailbox()
+    if not email:
         return None, False, 0.0, time.time() - t_start
 
     password = generate_random_password()
@@ -1283,6 +1532,10 @@ def register_one(runtime: RegisterRuntime, worker_id: int = 0) -> tuple[Optional
         registrar = ProtocolRegistrar(proxy=runtime.proxy, logger=runtime.logger)
         try:
             registrar.register(email=email, password=password)
+        except InvalidAuthStep as e:
+            runtime.logger.warning("register stage1 non-retryable, skip current account: %s | email=%s", e, email)
+            registrar.close()
+            return email, None, 0.0, time.time() - t_start
         except Exception as e:
             runtime.logger.warning("注册阶段1失败 (尝试 %s/%s): %s | email=%s", attempt, attempts, e, email)
             registrar.close()
@@ -1293,7 +1546,7 @@ def register_one(runtime: RegisterRuntime, worker_id: int = 0) -> tuple[Optional
 
         t_reg = time.time() - t_start
 
-        code = wait_for_verification_code(email_session, runtime.worker_domain, cf_token)
+        code = provider.wait_for_verification_code()
         if not code:
             runtime.logger.warning("注册失败: 未收到验证码 | email=%s", email)
             registrar.close()
@@ -1317,9 +1570,11 @@ def register_one(runtime: RegisterRuntime, worker_id: int = 0) -> tuple[Optional
         try:
             codex_token = registrar.codex_exchange_tokens(email=email, password=password)
         except AddPhoneRequired as e:
+            phone_count = runtime.increment_phone_verification_count()
             runtime.logger.warning("Codex 触发手机验证, 跳过: %s | email=%s", e, email)
+            runtime.logger.info("Codex phone verification count: %s", phone_count)
             registrar.close()
-            break
+            return email, None, t_reg, time.time() - t_start
         except Exception as e:
             runtime.logger.warning("Codex token 换取失败 (尝试 %s/%s): %s | email=%s", attempt, attempts, e, email)
             registrar.close()
@@ -1360,19 +1615,26 @@ def run_batch_register(conf: Dict[str, Any], target_tokens: int, logger: logging
     if target_tokens <= 0:
         return 0, 0, 0
 
-    if not pick_conf(conf, "email", "admin_password", default=""):
+    runtime = RegisterRuntime(conf=conf, target_tokens=target_tokens, logger=logger)
+    if runtime.email_type not in {"cf", "gptmail"}:
+        logger.error("unsupported email.type: %s", runtime.email_type)
+        return 0, 0, 0
+    if runtime.email_type == "cf" and not runtime.admin_password:
         logger.error("email.admin_password 未配置，无法创建临时邮箱。")
         return 0, 0, 0
-
-    runtime = RegisterRuntime(conf=conf, target_tokens=target_tokens, logger=logger)
+    if runtime.email_type == "gptmail" and not runtime.gptmail_api_key:
+        logger.error("email.gptmail_apikey 未配置，无法创建 gptmail 临时邮箱。")
+        return 0, 0, 0
     workers = runtime.concurrent_workers
 
     logger.info(
-        "开始补号: 目标 token=%s, 并发=%s, worker_domain=%s, email_domains=%s",
+        "开始补号: 目标 token=%s, 并发=%s, email_type=%s, worker_domain=%s, email_domains=%s, gptmail_base_url=%s",
         target_tokens,
         workers,
+        runtime.email_type,
         runtime.worker_domain,
         ",".join(runtime.email_domains),
+        runtime.gptmail_base_url,
     )
 
     ok = 0
@@ -1397,12 +1659,13 @@ def run_batch_register(conf: Dict[str, Any], target_tokens: int, logger: logging
             else:
                 skip += 1
             logger.info(
-                "补号进度: token %s/%s | ✅%s ❌%s ⏭️%s | 用时 %.1fs",
+                "补号进度: token %s/%s | ✅%s ❌%s ⏭️%s 📱%s | 用时 %.1fs",
                 runtime.get_token_success_count(),
                 target_tokens,
                 ok,
                 fail,
                 skip,
+                runtime.get_phone_verification_count(),
                 time.time() - batch_start,
             )
             if runtime.get_token_success_count() >= target_tokens:
@@ -1469,12 +1732,13 @@ def run_batch_register(conf: Dict[str, Any], target_tokens: int, logger: logging
                             skip += 1
 
                         logger.info(
-                            "补号进度: token %s/%s | ✅%s ❌%s ⏭️%s | 用时 %.1fs",
+                            "补号进度: token %s/%s | ✅%s ❌%s ⏭️%s 📱%s | 用时 %.1fs",
                             runtime.get_token_success_count(),
                             target_tokens,
                             ok,
                             fail,
                             skip,
+                            runtime.get_phone_verification_count(),
                             time.time() - batch_start,
                         )
 
@@ -1494,11 +1758,12 @@ def run_batch_register(conf: Dict[str, Any], target_tokens: int, logger: logging
     avg_reg = (sum(reg_times) / len(reg_times)) if reg_times else 0
     avg_total = (sum(total_times) / len(total_times)) if total_times else 0
     logger.info(
-        "补号完成: token=%s/%s, fail=%s, skip=%s, attempts=%s, elapsed=%.1fs, avg(注册)=%.1fs, avg(总)=%.1fs, 收敛账号=%s",
+        "补号完成: token=%s/%s, fail=%s, skip=%s, phone_verify=%s, attempts=%s, elapsed=%.1fs, avg(注册)=%.1fs, avg(总)=%.1fs, 收敛账号=%s",
         runtime.get_token_success_count(),
         target_tokens,
         fail,
         skip,
+        runtime.get_phone_verification_count(),
         attempts,
         elapsed,
         avg_reg,

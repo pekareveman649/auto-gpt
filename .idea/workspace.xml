@@ -2,18 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5f659a9d-1ec7-4bfd-8336-cabf9ad1bd59" name="更改" comment="init">
-      <change beforePath="$PROJECT_DIR$/logs/pool_maintainer_20260601_180450.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/pool_maintainer_20260601_181333.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/output_fixed/accounts.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/output_fixed/ak.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/output_fixed/registered_accounts.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/output_fixed/rk.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/output_tokens/100个账号-3/tmplijezj4tjzmr@soeasy.space.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/output_tokens/10个账号/tmpbw1kkqq0uhnowp@soeasy.space.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/output_tokens/10个账号/tmpcghyytaodyrdy0t@soeasy.space.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/output_tokens/10个账号/tmpcon96pkyanjtjorh@soeasy.space.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/output_tokens/10个账号/tmpqjkcwejp5vuim@soeasy.space.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/output_tokens/10个账号/tmpxgbsbkw6xfku@soeasy.space.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auto_pool_maintainer.py" beforeDir="false" afterPath="$PROJECT_DIR$/auto_pool_maintainer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.json" beforeDir="false" afterPath="$PROJECT_DIR$/config.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,18 +14,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "pekareveman649"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;pekareveman649&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/pekareveman649/auto-gpt.git",
-    "accountId": "47021147-8153-44ac-a735-9c79098c91d1"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/pekareveman649/auto-gpt.git&quot;,
+    &quot;accountId&quot;: &quot;47021147-8153-44ac-a735-9c79098c91d1&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 8,
   &quot;fromUser&quot;: false
@@ -44,22 +35,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python.auto_pool_maintainer.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "E:/workspace/py/auto-gpt2",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.auto_pool_maintainer.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;E:/workspace/py/auto-gpt2&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\workspace\py\auto-gpt2" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="auto_pool_maintainer" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="auto-gpt2" />
@@ -122,7 +118,23 @@
       <option name="project" value="LOCAL" />
       <updated>1780309997326</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="init">
+      <option name="closed" value="true" />
+      <created>1780310126060</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1780310126060</updated>
+    </task>
+    <task id="LOCAL-00004" summary="init">
+      <option name="closed" value="true" />
+      <created>1780310160966</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1780310160966</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
